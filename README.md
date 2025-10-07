@@ -177,7 +177,7 @@ A standalone HTML file with embedded CSS and JavaScript for the monitoring inter
 
 **Core Functions:**
 
-```javascript
+```c++
 async function connectSerial() {
   port = await navigator.serial.requestPort();  // Request port access
   await port.open({ baudRate: 9600 });          // Open at 9600 baud
@@ -336,13 +336,7 @@ Potential improvements for this project:
 - [ ] PWA (Progressive Web App) for offline functionality
 
 ## 📸 Screenshots
-
-*(Add screenshots of your working system here)*
-
-- Dashboard in action
-- Circuit assembly
-- Sensor in soil
-- Alert state demonstration
+(https://github.com/user-attachments/assets/a2c55bcc-c708-4338-af4f-baa06a396809)
 
 ## 🤝 Contributing
 
