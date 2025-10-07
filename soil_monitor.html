@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌱 Soil Moisture Dashboard</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      background: #f0fff0;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      color: #2e8b57;
+      margin-top: 20px;
+    }
+    #gauge {
+      margin: 40px auto;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      font-weight: bold;
+      color: white;
+      background: #2ecc71;
+      transition: background 0.3s;
+    }
+    #status {
+      font-size: 24px;
+      margin-top: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 18px;
+      margin-top: 20px;
+      border: none;
+      border-radius: 8px;
+      background: #2e8b57;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #3cb371;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🌾 Soil Moisture Monitoring System</h1>
+  <div id="gauge">--%</div>
+  <div id="status">Click "Connect" to start</div>
+  <button id="connectBtn">🔌 Connect to Arduino</button>
+
+  <script>
+    const connectBtn = document.getElementById('connectBtn');
+    const gauge = document.getElementById('gauge');
+    const status = document.getElementById('status');
+
+    let port, reader;
+
+    async function connectSerial() {
+      try {
+        port = await navigator.serial.requestPort();
+        await port.open({ baudRate: 9600 });
+        status.textContent = "✅ Connected to Arduino";
+        connectBtn.textContent = "🔴 Disconnect";
+
+        const decoder = new TextDecoderStream();
+        port.readable.pipeTo(decoder.writable);
+        reader = decoder.readable.getReader();
+
+        readLoop();
+      } catch (err) {
+        status.textContent = "❌ Connection failed: " + err;
+      }
+    }
+
+    async function readLoop() {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        if (value) {
+          let moisture = parseInt(value.trim());
+          if (!isNaN(moisture)) updateDisplay(moisture);
+        }
+      }
+    }
+
+    function updateDisplay(moisture) {
+      gauge.textContent = moisture + "%";
+
+      if (moisture < 40) {
+        gauge.style.background = "#e74c3c";
+        status.textContent = "⚠️ Soil is Dry! Water needed.";
+      } else if (moisture < 70) {
+        gauge.style.background = "#f1c40f";
+        status.textContent = "🌤️ Moisture is Moderate.";
+      } else {
+        gauge.style.background = "#2ecc71";
+        status.textContent = "✅ Soil Moisture is Good!";
+      }
+    }
+
+    connectBtn.addEventListener('click', async () => {
+      if (!port) {
+        await connectSerial();
+      } else {
+        await reader.cancel();
+        await port.close();
+        port = null;
+        connectBtn.textContent = "🔌 Connect to Arduino";
+        status.textContent = "Disconnected";
+      }
+    });
+  </script>
+</body>
+</html>
